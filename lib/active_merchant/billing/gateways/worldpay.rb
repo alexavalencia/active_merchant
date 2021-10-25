@@ -417,7 +417,13 @@ module ActiveMerchant #:nodoc:
           add_network_tokenization_card(xml, payment_method)
         else
           xml.paymentDetails credit_fund_transfer_attribute(options) do
-            if options[:payment_type] == :token
+            if options[:payment_type] == :google_pay
+              xml.'PAYWITHGOOGLE-SSL' do
+                xml.protocolVersion  payment_method.protocolVersion
+                xml.signature payment_method.signature
+                xml.signedMessage payment_method.signedMessage
+              end
+            elsif options[:payment_type] == :token
               xml.tag! 'TOKEN-SSL', 'tokenScope' => options[:token_scope] do
                 xml.paymentTokenID options[:token_id]
               end
@@ -773,6 +779,8 @@ module ActiveMerchant #:nodoc:
         payment_details = {}
         if payment_method.is_a?(NetworkTokenizationCreditCard) && payment_method.source == :network_token
           payment_details[:payment_type] = :network_token
+        elsif payment_method.is_a?(NetworkTokenizationCreditCard) && payment_method.source == :google_pay
+          payment_details[:payment_type] = :google_pay
         elsif payment_method.respond_to?(:number)
           payment_details[:payment_type] = :credit
         else
