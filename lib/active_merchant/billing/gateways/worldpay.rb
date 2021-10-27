@@ -442,7 +442,7 @@ module ActiveMerchant #:nodoc:
 
       def add_network_tokenization_card(xml, payment_method)
         token_type = {
-          google_pay: 'GOOGLEPAY'
+          google_pay: 'GOOGLEPAY',
           neetwork_token: 'NETWORKTOKEN'
         }[payment_method.source]
 
