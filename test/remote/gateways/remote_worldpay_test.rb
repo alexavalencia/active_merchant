@@ -59,7 +59,6 @@ class RemoteWorldpayTest < Test::Unit::TestCase
       year: '2024',
       source: :google_pay,
       transaction_id: '123456789',
-      cvv: '123',
       eci: '05')
   end
 
@@ -84,7 +83,7 @@ class RemoteWorldpayTest < Test::Unit::TestCase
     assert_equal "XML failed validation: Invalid payment details : Card number must be at least 10 digits.: ", auth.message
   end
 
-  def test_filed_authorize_with_empty_verification_value
+  def test_failed_authorize_with_empty_verification_value
     @google_play_network_token.verification_value = ''
     assert auth = @gateway.authorize(@amount, @google_play_network_token, @options)
     assert_equal "CVV not processed", auth.cvv_result['message']
