@@ -4,7 +4,6 @@ class RemoteWorldpayTest < Test::Unit::TestCase
   def setup
     @gateway = WorldpayGateway.new(fixtures(:world_pay_gateway))
     @cftgateway = WorldpayGateway.new(fixtures(:world_pay_gateway_cft))
-
     @amount = 100
     @credit_card = credit_card('4111111111111111')
     @amex_card = credit_card('3714 496353 98431')
@@ -53,6 +52,50 @@ class RemoteWorldpayTest < Test::Unit::TestCase
         sub_tax_id: '987-65-4321'
       }
     }
+
+    @google_play_network_token = network_tokenization_credit_card('4444333322221111',
+      payment_cryptogram: 'EHuWW9PiBkWvqE5juRwDzAUFBAk=',
+      month: '01',
+      year: '2024',
+      source: :google_pay,
+      transaction_id: '123456789',
+      cvv: '123',
+      eci: '05')
+  end
+
+  def test_authorize_with_google_pay_card
+    assert auth = @gateway.authorize(@amount, @google_play_network_token, @options)
+    assert_success auth
+    assert_equal 'SUCCESS', auth.message
+    assert auth.authorization
+  end
+
+  def test_failed_authorize_without_token_number_google_pay
+    @google_play_network_token.number = nil
+    assert auth = @gateway.authorize(@amount, @google_play_network_token, @options)
+    assert_equal auth.error_code, "5"
+    assert_equal "XML failed validation: Invalid payment details : Card number must be at least 10 digits.: ", auth.message
+  end
+
+  def  test_failed_authorize_with_empty_token_number
+    @google_play_network_token.number = ''
+    assert auth = @gateway.authorize(@amount, @google_play_network_token, @options)
+    assert_equal auth.error_code, "5"
+    assert_equal "XML failed validation: Invalid payment details : Card number must be at least 10 digits.: ", auth.message
+  end
+
+  def test_filed_authorize_with_empty_verification_value
+    @google_play_network_token.verification_value = ''
+    assert auth = @gateway.authorize(@amount, @google_play_network_token, @options)
+    assert_equal "CVV not processed", auth.cvv_result['message']
+  end
+
+  def test_purchase_with_google_pay_card
+    require 'debug'
+    assert auth = @gateway.purchase(@amount, @google_play_network_token, @options)
+    assert_success auth
+    assert_equal 'SUCCESS', auth.message
+    assert auth.authorization
   end
 
   def test_successful_purchase
