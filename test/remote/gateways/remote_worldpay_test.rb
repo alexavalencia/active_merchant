@@ -65,6 +65,9 @@ class RemoteWorldpayTest < Test::Unit::TestCase
   def test_authorize_with_google_pay_card
     assert auth = @gateway.authorize(@amount, @google_play_network_token, @options)
     assert_success auth
+    assert_equal 'authorize', auth.params['action']
+    assert_equal @amount, auth.params['amount_value'].to_i
+    assert_equal "GBP", auth.params['amount_currency_code']
     assert_equal 'SUCCESS', auth.message
     assert auth.authorization
   end
@@ -73,34 +76,109 @@ class RemoteWorldpayTest < Test::Unit::TestCase
     @google_play_network_token.number = nil
     assert auth = @gateway.authorize(@amount, @google_play_network_token, @options)
     assert_equal auth.error_code, "5"
+    assert_equal 'authorize', auth.params['action']
     assert_equal "XML failed validation: Invalid payment details : Card number must be at least 10 digits.: ", auth.message
   end
 
-  def  test_failed_authorize_with_empty_token_number
+  def test_failed_authorize_with_empty_token_number
     @google_play_network_token.number = ''
     assert auth = @gateway.authorize(@amount, @google_play_network_token, @options)
     assert_equal auth.error_code, "5"
+    assert_equal 'authorize', auth.params['action']
     assert_equal "XML failed validation: Invalid payment details : Card number must be at least 10 digits.: ", auth.message
   end
 
   def test_failed_authorize_with_empty_verification_value
     @google_play_network_token.verification_value = ''
     assert auth = @gateway.authorize(@amount, @google_play_network_token, @options)
+    assert_equal 'authorize', auth.params['action']
     assert_equal "CVV not processed", auth.cvv_result['message']
   end
 
+  def test_successful_authorize_without_cryptogram
+    @google_play_network_token.payment_cryptogram = ''
+    assert auth = @gateway.authorize(@amount, @google_play_network_token, @options)
+    assert_success auth
+    assert_equal 'authorize', auth.params['action']
+    assert_equal @amount, auth.params['amount_value'].to_i
+    assert_equal "GBP", auth.params['amount_currency_code']
+    assert_equal 'SUCCESS', auth.message
+    assert auth.authorization
+  end
+
+  def test_successful_authorize_with_invalid_cryptogram
+    @google_play_network_token.payment_cryptogram = '11111111....'
+    assert auth = @gateway.authorize(@amount, @google_play_network_token, @options)
+    assert_success auth
+    assert_equal 'authorize', auth.params['action']
+    assert_equal @amount, auth.params['amount_value'].to_i
+    assert_equal "GBP", auth.params['amount_currency_code']
+    assert_equal 'SUCCESS', auth.message
+    assert auth.authorization
+  end
+
+  def test_successful_authorize_with_exemption
+    options = @options.merge(exemption_type: 'placement', exemption_placement: 'AUTHORISATION')
+    assert auth = @gateway.authorize(@amount, @google_play_network_token, @options)
+    assert_success auth
+    assert_equal 'authorize', auth.params['action']
+    assert_equal @amount, auth.params['amount_value'].to_i
+    assert_equal "GBP", auth.params['amount_currency_code']
+    assert_equal 'SUCCESS', auth.message
+    assert auth.authorization
+  end
+  
+
+  def test_successful_purchase
+    assert response = @gateway.purchase(@amount, @credit_card, @options)
+    assert_success response
+    assert_equal 'SUCCESS', response.message
+  end
+
   def test_purchase_with_google_pay_card
-    require 'debug'
     assert auth = @gateway.purchase(@amount, @google_play_network_token, @options)
     assert_success auth
     assert_equal 'SUCCESS', auth.message
     assert auth.authorization
   end
 
-  def test_successful_purchase
-    assert response = @gateway.purchase(@amount, @credit_card, @options)
-    assert_success response
-    assert_equal 'SUCCESS', response.message
+  def test_succesful_purchase_with_store_credentials
+    options = @options.merge(
+      stored_credential_usage: 'USED',
+      stored_credential_initiated_reason: 'UNSCHEDULED',
+      stored_credential_transaction_id: '000000000000020005060720116005060'
+    )
+
+    assert auth = @gateway.purchase(@amount, @google_play_network_token, options)
+    assert_success auth
+    assert_equal @amount, auth.params['amount_value'].to_i
+    assert_equal "GBP", auth.params['amount_currency_code']
+    assert_equal 'SUCCESS', auth.message
+    assert auth.authorization
+  end
+
+  def test_successful_authorize_with_void
+    assert auth = @gateway.authorize(@amount, @google_play_network_token, @options)
+    assert_success auth
+    assert_equal 'authorize', auth.params['action']
+    assert_equal @amount, auth.params['amount_value'].to_i
+    assert_equal "GBP", auth.params['amount_currency_code']
+    assert auth.authorization
+    assert capture = @gateway.capture(@amount, auth.authorization, @options.merge(authorization_validated: true))
+    assert_success capture
+    assert void = @gateway.void(auth.authorization, @options.merge(authorization_validated: true))
+    assert_success void
+  end
+
+  def test_successful_purchase_with_refund
+    assert auth = @gateway.purchase(@amount, @google_play_network_token, @options)
+    assert_success auth
+    assert_equal 'capture', auth.params['action']
+    assert_equal @amount, auth.params['amount_value'].to_i
+    assert_equal "GBP", auth.params['amount_currency_code']
+    assert auth.authorization
+    assert refund = @gateway.refund(@amount, auth.authorization, @options.merge(authorization_validated: true))
+    assert_success refund
   end
 
   def test_successful_purchase_with_network_token
