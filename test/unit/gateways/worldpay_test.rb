@@ -14,11 +14,11 @@ class WorldpayTest < Test::Unit::TestCase
     @token = '|99411111780163871111|shopper|59424549c291397379f30c5c082dbed8'
     @elo_credit_card = credit_card('4514 1600 0000 0008',
       month: 10,
-      year: 2020,
-      first_name: 'John',
-      last_name: 'Smith',
-      verification_value: '737',
-      brand: 'elo')
+       year: 2020,
+       first_name: 'John',
+       last_name: 'Smith',
+       verification_value: '737',
+       brand: 'elo')
     @nt_credit_card = network_tokenization_credit_card('4895370015293175',
       brand: 'visa',
       eci: '07',
@@ -43,6 +43,22 @@ class WorldpayTest < Test::Unit::TestCase
         sub_id: '1234567'
       }
     }
+
+    @apple_play_network_token = network_tokenization_credit_card('4895370015293175',
+      month: 10,
+      year: 24,
+      first_name: 'John',
+      last_name: 'Smith',
+      verification_value: '737',
+      source: :apple_pay)
+
+    @google_pay_network_token = network_tokenization_credit_card('4444333322221111',
+      payment_cryptogram: 'EHuWW9PiBkWvqE5juRwDzAUFBAk=',
+      month: '01',
+      year: Time.new.year + 2,
+      source: :google_pay,
+      transaction_id: '123456789',
+      eci: '05')
   end
 
   def test_successful_authorize
@@ -1161,6 +1177,33 @@ class WorldpayTest < Test::Unit::TestCase
       @gateway.refund(@amount, @options[:order_id], @options)
     end.respond_with(failed_refund_synchronous_response)
     assert_failure response
+  end
+
+  def test_network_token_type_assignation_when_apple_token
+    response = stub_comms do
+      @gateway.authorize(@amount, @apple_play_network_token, @options)
+    end.check_request do |_endpoint, data, _headers|
+      assert_match %r(<EMVCO_TOKEN-SSL type="APPLEPAY">), data
+    end.respond_with(successful_authorize_response)
+    assert_success response
+  end
+
+  def test_network_token_type_assignation_when_network_token
+    response = stub_comms do
+      @gateway.authorize(@amount, @nt_credit_card, @options)
+    end.check_request do |_endpoint, data, _headers|
+      assert_match %r(<EMVCO_TOKEN-SSL type="NETWORKTOKEN">), data
+    end.respond_with(successful_authorize_response)
+    assert_success response
+  end
+
+  def test_network_token_type_assignation_when_google_pay
+    response = stub_comms do
+      @gateway.authorize(@amount, @google_pay_network_token, @options)
+    end.check_request do |_endpoint, data, _headers|
+      assert_match %r(<EMVCO_TOKEN-SSL type="GOOGLEPAY">), data
+    end.respond_with(successful_authorize_response)
+    assert_success response
   end
 
   private
