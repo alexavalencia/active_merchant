@@ -1210,6 +1210,15 @@ class WorldpayTest < Test::Unit::TestCase
     assert_success response
   end
 
+  def test_auth_amount_status_assignation
+    response = stub_comms do
+      @gateway.adjust(@amount, @credit_card, @options)
+    end.check_request do |_endpoint, data, _headers|
+      assert_match %r(<authorisationAmountStatus value="estimated"/>), data
+    end.respond_with(successful_authorize_response)
+    assert_success response
+  end
+
   private
 
   def assert_date_element(expected_date_hash, date_element)

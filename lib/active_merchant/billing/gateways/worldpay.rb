@@ -74,6 +74,13 @@ module ActiveMerchant #:nodoc:
         authorize_request(money, payment_method, payment_details.merge(options))
       end
 
+      def adjust(money, payment_method, options = {})
+        requires!(options, :order_id)
+        options[:auth_amount_status] = true
+        payment_details = payment_details_from(payment_method)
+        authorize_request(money, payment_method, payment_details.merge(options))
+      end
+
       def capture(money, authorization, options = {})
         authorization = order_id_from_authorization(authorization.to_s)
         MultiResponse.run do |r|
@@ -222,6 +229,7 @@ module ActiveMerchant #:nodoc:
               add_payment_method(xml, money, payment_method, options)
               add_shopper(xml, options)
               add_statement_narrative(xml, options)
+              add_authorisation_amount_status(xml) if options[:auth_amount_status]
               add_risk_data(xml, options[:risk_data]) if options[:risk_data]
               add_sub_merchant_data(xml, options[:sub_merchant_data]) if options[:sub_merchant_data]
               add_hcg_additional_data(xml, options) if options[:hcg_additional_data]
@@ -597,6 +605,10 @@ module ActiveMerchant #:nodoc:
         address ||= {}
         address.delete_if { |_, v| v.blank? }
         address.reverse_merge!(default_address)
+      end
+
+      def add_authorisation_amount_status(xml)
+        xml.authorisationAmountStatus 'value' => 'estimated'
       end
 
       def default_address

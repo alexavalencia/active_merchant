@@ -7,6 +7,7 @@ class RemoteWorldpayTest < Test::Unit::TestCase
 
     @amount = 100
     @credit_card = credit_card('4111111111111111')
+    @master_card = credit_card('5555555555554444')
     @amex_card = credit_card('3714 496353 98431')
     @elo_credit_card = credit_card('4514 1600 0000 0008',
       month: 10,
@@ -971,6 +972,14 @@ class RemoteWorldpayTest < Test::Unit::TestCase
     assert_success purchase
   end
 
+  def test_successful_adust_with_master_card
+    response = @gateway.adjust(@amount, @master_card, @options)
+    assert_success response
+    assert_equal @amount, response.params['amount_value'].to_i
+    assert_equal 'GBP', response.params['amount_currency_code']
+    assert_equal 'SUCCESS', response.message
+  end
+
   private
 
   def risk_data
@@ -1002,7 +1011,7 @@ class RemoteWorldpayTest < Test::Unit::TestCase
         purchases_completed_last_six_months: '3',
         add_card_attempts_last_day: '4',
         previous_suspicious_activity: 'false', # Boolean (true or false)
-        shipping_name_matches_account_name: 'true', #	Boolean (true or false)
+        shipping_name_matches_account_name: 'true', # Boolean (true or false)
         shopper_account_age_indicator: 'lessThanThirtyDays', # Possible Values: noAccount, createdDuringTransaction, lessThanThirtyDays, thirtyToSixtyDays, moreThanSixtyDays
         shopper_account_change_indicator: 'thirtyToSixtyDays', # Possible values: changedDuringTransaction, lessThanThirtyDays, thirtyToSixtyDays, moreThanSixtyDays
         shopper_account_password_change_indicator: 'noChange', # Possible Values: noChange, changedDuringTransaction, lessThanThirtyDays, thirtyToSixtyDays, moreThanSixtyDays
