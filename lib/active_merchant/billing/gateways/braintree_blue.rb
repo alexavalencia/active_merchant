@@ -224,6 +224,8 @@ module ActiveMerchant #:nodoc:
         true
       end
 
+      private
+
       def check_customer_exists(customer_vault_id)
         commit do
           @braintree_gateway.customer.find(customer_vault_id)
@@ -828,30 +830,31 @@ module ActiveMerchant #:nodoc:
       end
 
       def get_client_token
-        gateway = Braintree::Gateway.new(
-          environment: :sandbox,
-          merchant_id: 'kd6tbckcddf6yvdg',
-          public_key: 'y8sks5kx3ddsmj2m',
-          private_key: 'a9e741bdfff47e4f2fc1bd2e19dff085'
-        )
-
+        base64TYoken = @braintree_gateway.client_token.generate
         base64TYoken = gateway.client_token.generate
         JSON.parse(Base64.decode64(base64TYoken))["authorizationFingerprint"]
       end
 
-      def get_token_nounce
+      def get_token_nonce(account)
         url = 'https://payments.sandbox.braintree-api.com/graphql'
+        token = nil
         headers = {
           "Accept": 'application/json',
           "Authorization": "Bearer #{get_client_token}",
           "Content-Type": 'application/json',
           "Braintree-Version": '2018-05-10'
         }
-        resp = ssl_post(url, build_graphql_request.to_json, headers)
-        JSON.parse(resp)["data"]["tokenizeUsBankAccount"]["paymentMethod"]["id"]
+        request = build_graphql_request(account).to_json
+        resp = ssl_post(url, request, headers)
+
+        parse_response = JSON.parse(resp)
+
+        if parse_response.has_key? "data"
+          token = parse_response["data"]["tokenizeUsBankAccount"]["paymentMethod"]["id"]
+        end
       end
 
-      def build_graphql_request
+      def build_graphql_request(payment_method)
         {
           "clientSdkMetadata": {
             "platform": 'web',
@@ -865,9 +868,9 @@ module ActiveMerchant #:nodoc:
               "input": {
                 "usBankAccount": {
                   "achMandate": 'By clicking ["Checkout"], I authorize Braintree, a service of PayPal, on behalf of [your business name here] (i) to verify my bank account information using bank information and consumer reports and (ii) to debit my bank account.',
-                      "routingNumber": '011000015',
-                      "accountNumber": '1000000002',
-                      "accountType": 'SAVINGS',
+                      "routingNumber": payment_method.routing_number,
+                      "accountNumber": payment_method.account_number,
+                      "accountType": payment_method.account_type.upcase,
                       "billingAddress": {
                         "streetAddress": '1670',
                           "extendedAddress": '1670 NW 82ND AVE',
@@ -895,24 +898,29 @@ module ActiveMerchant #:nodoc:
           device_data: options[:device_data]
         }
 
-        if options[:store]
-          get_customer = @braintree_gateway.customer.create(account_data)
-          verify_bank_account(parameters, account, options.merge(customer_id: get_customer.customer.id))
-        else
-          parameters[:payment_method_nonce] = get_token_nounce
+        token_nonce = options[:payment_method_nonce] && options[:payment_method_nonce].length > 0 ? options[:payment_method_nonce] : get_token_nonce(account)
+
+        if options.has_key? :store
+          customer_id = @braintree_gateway.customer.create(account_data).customer.id
+          verify_bank_account(parameters, account, options.merge(customer_id: customer_id, nonce: token_nonce))
         end
       end
 
       def verify_bank_account(parameters, account, options)
-        if options[:payment_method_nonce]
+        if options.has_key? :nonce
           ## valuting process
           result = @braintree_gateway.payment_method.create(
             customer_id: options[:customer_id],
-            payment_method_nonce: options[:payment_method_nonce],
+            payment_method_nonce: options[:nonce],
             options: {
               us_bank_account_verification_method: 'network_check' # or "micro_transfers" or "independent_check"
             }
           )
+          if result.success?
+            get_nonce = @braintree_gateway.payment_method_nonce.create(result.payment_method.token)
+            nonce = get_nonce.payment_method_nonce.nonce
+            parameters[:payment_method_nonce] = nonce
+          end
         end
       end
     end

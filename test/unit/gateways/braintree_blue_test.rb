@@ -1326,10 +1326,10 @@ class BraintreeBlueTest < Test::Unit::TestCase
     Braintree::TransactionGateway.any_instance.expects(:sale).
     returns(braintree_result)
     options = @options.merge(
-      payment_method_nonce: "",
+      payment_method_nonce: "fake-valid-debit-nonce",
       submit_for_settlement: true
     )
-    response = @gateway.purchase(0.01, @bank_account, @options)
+    response = @gateway.purchase(0.01, @bank_account, options)
     assert_equal 'transaction_id', response.authorization
     assert_equal true, response.test
     assert_success response
@@ -1349,12 +1349,6 @@ class BraintreeBlueTest < Test::Unit::TestCase
       assert_equal true, response.test
       assert_success response
   end
-
-  def test_get_token_client
-    ActiveMerchant::Billing::Base.mode = :test
-    ActiveMerchant::Billing::BraintreeBlueGateway.new(merchant_id: '1', public_key: '1', private_key: '2', merchant_account_id: 'xx').get_token_nounce
-  end
-
 
   private
 
