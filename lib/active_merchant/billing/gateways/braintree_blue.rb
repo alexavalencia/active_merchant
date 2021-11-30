@@ -224,8 +224,6 @@ module ActiveMerchant #:nodoc:
         true
       end
 
-      private
-
       def check_customer_exists(customer_vault_id)
         commit do
           @braintree_gateway.customer.find(customer_vault_id)
@@ -617,7 +615,6 @@ module ActiveMerchant #:nodoc:
         add_account_type(parameters, options) if options[:account_type]
         add_skip_options(parameters, options)
         add_merchant_account_id(parameters, options)
-
         add_payment_method(parameters, credit_card_or_vault_id, options)
         add_stored_credential_data(parameters, credit_card_or_vault_id, options)
         add_addresses(parameters, options)
@@ -788,6 +785,8 @@ module ActiveMerchant #:nodoc:
           else
             parameters[:customer_id] = credit_card_or_vault_id
           end
+        elsif credit_card_or_vault_id.is_a?(Check)
+          add_bank_account(parameters, credit_card_or_vault_id, options)
         else
           parameters[:customer].merge!(
             first_name: credit_card_or_vault_id.first_name,
@@ -825,6 +824,95 @@ module ActiveMerchant #:nodoc:
               cardholder_name: credit_card_or_vault_id.name
             }
           end
+        end
+      end
+
+      def get_client_token
+        gateway = Braintree::Gateway.new(
+          environment: :sandbox,
+          merchant_id: 'kd6tbckcddf6yvdg',
+          public_key: 'y8sks5kx3ddsmj2m',
+          private_key: 'a9e741bdfff47e4f2fc1bd2e19dff085'
+        )
+
+        base64TYoken = gateway.client_token.generate
+        JSON.parse(Base64.decode64(base64TYoken))["authorizationFingerprint"]
+      end
+
+      def get_token_nounce
+        url = 'https://payments.sandbox.braintree-api.com/graphql'
+        headers = {
+          "Accept": 'application/json',
+          "Authorization": "Bearer #{get_client_token}",
+          "Content-Type": 'application/json',
+          "Braintree-Version": '2018-05-10'
+        }
+        resp = ssl_post(url, build_graphql_request.to_json, headers)
+        JSON.parse(resp)["data"]["tokenizeUsBankAccount"]["paymentMethod"]["id"]
+      end
+
+      def build_graphql_request
+        {
+          "clientSdkMetadata": {
+            "platform": 'web',
+              "source": 'client',
+              "integration": 'custom',
+              "sessionId": '8741d2d6-ffcc-4dbb-a0ea-929fdc9bac4e',
+              "version": '3.83.0'
+          },
+            "query": 'mutation TokenizeUsBankAccount($input: TokenizeUsBankAccountInput!) {  tokenizeUsBankAccount(input: $input) {    paymentMethod {      id      details {        ... on UsBankAccountDetails {          last4        }      }    }  }}',
+            "variables": {
+              "input": {
+                "usBankAccount": {
+                  "achMandate": 'By clicking ["Checkout"], I authorize Braintree, a service of PayPal, on behalf of [your business name here] (i) to verify my bank account information using bank information and consumer reports and (ii) to debit my bank account.',
+                      "routingNumber": '011000015',
+                      "accountNumber": '1000000002',
+                      "accountType": 'SAVINGS',
+                      "billingAddress": {
+                        "streetAddress": '1670',
+                          "extendedAddress": '1670 NW 82ND AVE',
+                          "city": 'Miami',
+                          "state": 'FL',
+                          "zipCode": '33191'
+                      },
+                      "individualOwner": {
+                        "firstName": 'Pedro',
+                          "lastName": 'Perez'
+                      }
+                }
+              }
+            }
+        }
+      end
+
+      def add_bank_account(parameters, account, options)
+        account_data = {
+          first_name: account.first_name,
+          last_name: account.last_name,
+          email: scrub_email(options[:email]),
+          phone: options[:phone] || (options[:billing_address][:phone] if options[:billing_address] &&
+            options[:billing_address][:phone]),
+          device_data: options[:device_data]
+        }
+
+        if options[:store]
+          get_customer = @braintree_gateway.customer.create(account_data)
+          verify_bank_account(parameters, account, options.merge(customer_id: get_customer.customer.id))
+        else
+          parameters[:payment_method_nonce] = get_token_nounce
+        end
+      end
+
+      def verify_bank_account(parameters, account, options)
+        if options[:payment_method_nonce]
+          ## valuting process
+          result = @braintree_gateway.payment_method.create(
+            customer_id: options[:customer_id],
+            payment_method_nonce: options[:payment_method_nonce],
+            options: {
+              us_bank_account_verification_method: 'network_check' # or "micro_transfers" or "independent_check"
+            }
+          )
         end
       end
     end
