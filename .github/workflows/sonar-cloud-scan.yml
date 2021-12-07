@@ -16,6 +16,8 @@ jobs:
     - uses: ruby/setup-ruby@v1
       with:
         bundler-cache: true
+    - name: install bundler 
+      run: bundler install
     - name: Run test
       run: bundle exec rspec
     - name: Upload coverage report
@@ -24,7 +26,9 @@ jobs:
       with:
         name: head-result
         path: coverage/.resultset.json
+        
   sonarcloud:
+    if: success()
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
