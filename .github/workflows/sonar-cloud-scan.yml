@@ -26,7 +26,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: head-result
-        path: coverage/.resultset.json
+        path: /.resultset.json
         
   sonarcloud:
     needs: build-head
