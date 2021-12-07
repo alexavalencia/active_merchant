@@ -11,6 +11,13 @@ jobs:
   sonarcloud:
     runs-on: ubuntu-latest
     steps:
+     - name: Test
+        run: bundle exec rspec
+
+      - name: Simplecov Report
+        uses: aki77/simplecov-report-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
     - uses: actions/checkout@v2
       with:
         # Disabling shallow clone is recommended for improving relevancy of reporting
