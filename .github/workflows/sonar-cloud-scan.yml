@@ -21,12 +21,17 @@ jobs:
           gem install bundler -v '1.17.3'
           bundle install
           bundle exec rake test:local
+    - name: Fix code coverage paths
+      working-directory: ./coverage
+      run: |
+         sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' coverage.json
     - name: Upload coverage report
       if: always()
       uses: actions/upload-artifact@v2
       with:
         name: head-result
         path: coverage/.resultset.json
+    
         
   sonarcloud:
     needs: build-head
