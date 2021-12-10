@@ -35,6 +35,11 @@ jobs:
     needs: build-head
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: .resultset.json
+        path: coverage/.resultset.json
+        
     - uses: actions/checkout@v2
       with:
         # Disabling shallow clone is recommended for improving relevancy of reporting
