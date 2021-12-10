@@ -41,7 +41,7 @@ jobs:
         name: result
     - name: Display structure of downloaded files
       shell: bash 
-      run: ls /home/runner/work/active_merchant/active_merchant
+      run: ls -R
         
     - uses: actions/checkout@v2
       with:
