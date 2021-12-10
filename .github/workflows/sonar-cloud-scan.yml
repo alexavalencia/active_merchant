@@ -41,13 +41,13 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         name: result
-    - run: ls .
+        path: /home/runner/work/active_merchant/active_merchant
+    - run: ls -R
       working-directory: /home/runner/work/active_merchant/active_merchant
       shell: sh
         
     - uses: actions/checkout@v2
       with:
-        # Disabling shallow clone is recommended for improving relevancy of reporting
         fetch-depth: 0
     - name: SonarCloud Scan
       uses: sonarsource/sonarcloud-github-action@master
