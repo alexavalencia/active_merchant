@@ -33,7 +33,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: result
-        path: coverage/.resultset.json
+        path: coverage/coverage.json
 
   sonarcloud:
     needs: build-head
