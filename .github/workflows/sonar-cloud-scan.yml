@@ -12,7 +12,7 @@ name: Main Workflow
 jobs:
   build-head:
     name: 'Build'
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         ruby: [2.5.7, 2.6.9, 2.7.5]
@@ -28,24 +28,6 @@ jobs:
     - name: test
       run: 
           bundle exec rake test:local
-    - name: Upload coverage report
-      if: success()
-      uses: actions/upload-artifact@v2
-      with:
-        name: result
-        path: coverage/.resultset.json
-
-  sonarcloud:
-    needs: build-head
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
-    - uses: actions/download-artifact@v2
-      with:
-          name: result
-    - run: ls
     - name: SonarCloud Scan
       uses: sonarsource/sonarcloud-github-action@master
       env:
