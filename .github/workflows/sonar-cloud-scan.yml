@@ -38,7 +38,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v2
       with:
-        name: head-result
+        name: result
         
     - uses: actions/checkout@v2
       with:
