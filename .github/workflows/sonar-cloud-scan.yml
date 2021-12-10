@@ -10,7 +10,7 @@ name: Main Workflow
 jobs:
   build-head:
     name: 'Build'
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v2
     - uses: ruby/setup-ruby@v1
@@ -34,13 +34,12 @@ jobs:
         
   sonarcloud:
     needs: build-head
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
     - uses: actions/download-artifact@v2
       with:
         name: result
     - name: Display structure of downloaded files
-      shell: bash 
       run: ls -R
         
     - uses: actions/checkout@v2
