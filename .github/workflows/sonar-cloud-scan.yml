@@ -40,7 +40,7 @@ jobs:
       with:
         name: result
     - name: Display structure of downloaded files
-      run: ls
+      run: ls /home/runner/work/active_merchant/active_merchant
         
     - uses: actions/checkout@v2
       with:
