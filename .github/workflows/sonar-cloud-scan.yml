@@ -9,7 +9,7 @@ on:
 name: Main Workflow
 jobs:
   build-head:
-    name: 'Build head'
+    name: 'Build'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -27,7 +27,7 @@ jobs:
       if: success()
       uses: actions/upload-artifact@v2
       with:
-        name: head-result
+        name: result
         path: coverage/.resultset.json
     
     
@@ -40,7 +40,6 @@ jobs:
       with:
         name: head-result
     - name: Display structure of downloaded files
-      run: ls -R
       working-directory: coverage/.resultset.json
         
     - uses: actions/checkout@v2
