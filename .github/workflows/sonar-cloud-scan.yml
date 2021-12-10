@@ -13,11 +13,14 @@ jobs:
   build-head:
     name: 'Build'
     runs-on: macos-latest
+    strategy:
+      matrix:
+        ruby: [2.5.7, 2.6.9, 2.7.5, 3.0.3]
     steps:
     - uses: actions/checkout@v2
     - uses: ruby/setup-ruby@v1
       with:
-        ruby-version: 2.5.7
+        ruby-version: ${{ matrix.ruby }}
     - name: Build
       run: |
           gem install bundler -v '2.2.21'
