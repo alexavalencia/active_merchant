@@ -24,10 +24,11 @@ jobs:
       run: 
           bundle exec rake test:local
     - name: Upload coverage report
-      if: always()
+      if: success()
       uses: actions/upload-artifact@v2
       with:
-        name: coverage/.resultset.json
+        name: head-result
+        path: coverage/.resultset.json
     
     
         
