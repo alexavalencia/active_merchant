@@ -27,10 +27,8 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v2
       with:
-        name: head-result
-    - name: Display structure of downloaded files
-      run: ls -R
-      working-directory: coverage/.resultset.json
+        name: coverage/.resultset.json
+    
     
         
   sonarcloud:
@@ -40,7 +38,9 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         name: head-result
-        path: coverage/.resultset.json
+    - name: Display structure of downloaded files
+      run: ls -R
+      working-directory: coverage/.resultset.json
         
     - uses: actions/checkout@v2
       with:
