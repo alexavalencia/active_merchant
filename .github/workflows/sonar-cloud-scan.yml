@@ -5,7 +5,9 @@ on:
     branches:
       - master
   pull_request:
-      types: [opened, synchronize, reopened]
+    branches:
+      - master
+    types: [opened, synchronize, reopened]
 name: Main Workflow
 jobs:
   build-head:
@@ -40,6 +42,8 @@ jobs:
       with:
         name: result
     - run: ls .
+      working-directory: /home/runner/work/active_merchant/active_merchant
+      shell: sh
         
     - uses: actions/checkout@v2
       with:
