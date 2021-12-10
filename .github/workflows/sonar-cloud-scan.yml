@@ -39,6 +39,8 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         name: result
+    - name: Display structure of downloaded files
+      run: ls
         
     - uses: actions/checkout@v2
       with:
