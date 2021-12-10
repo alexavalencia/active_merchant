@@ -18,7 +18,6 @@ require 'simplecov'
 
 SimpleCov.start do
   enable_coverage :branch
-  SimpleCov.minimum_coverage line: 90, branch: 80
 end
 
 ActiveMerchant::Billing::Base.mode = :test
