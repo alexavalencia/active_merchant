@@ -34,13 +34,12 @@ jobs:
         
   sonarcloud:
     needs: build-head
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/download-artifact@v2
       with:
         name: result
-    - name: Display structure of downloaded files
-      run: ls -R
+    - run: ls .
         
     - uses: actions/checkout@v2
       with:
