@@ -14,8 +14,14 @@ require 'active_support/core_ext/integer/time'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/core_ext/time/acts_like'
 require 'simplecov'
+require "simplecov_json_formatter"
 
-SimpleCov.start
+SimpleCov.formatter = SimpleCov::Formatter::JSONFormatter
+
+SimpleCov.start do
+  enable_coverage :branch
+  SimpleCov.minimum_coverage line: 90, branch: 80
+end
 
 ActiveMerchant::Billing::Base.mode = :test
 
