@@ -14,7 +14,9 @@ require 'active_support/core_ext/integer/time'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/core_ext/time/acts_like'
 require 'simplecov'
+require "simplecov_json_formatter"
 
+SimpleCov.formatter = SimpleCov::Formatter::JSONFormatter
 SimpleCov.start do
   enable_coverage :branch
   add_filter %r{^/test/}
