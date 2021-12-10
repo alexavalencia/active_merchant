@@ -34,21 +34,15 @@ jobs:
       with:
         name: result
         path: coverage/.resultset.json
-    
-    
-        
+
   sonarcloud:
     needs: build-head
     runs-on: ubuntu-latest
     steps:
     - uses: actions/download-artifact@v2
       with:
-        name: result
-        path: /home/runner/work/active_merchant/active_merchant
-    - run: ls -R
-      working-directory: /home/runner/work/active_merchant/active_merchant
-      shell: sh
-        
+          name: result
+    - run: ls .
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
