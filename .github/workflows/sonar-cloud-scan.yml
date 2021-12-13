@@ -21,10 +21,11 @@ jobs:
     - name: move 
       run: |
           sudo mv /home/runner/work/active_merchant /home/active_merchant
+          pwd
           ls -a
     - uses: ruby/setup-ruby@v1
       with:
-        working-directory: /home/active_merchant
+        working-directory: /home/.
         ruby-version: ${{ matrix.ruby }}
     - name: Build
       run: |
