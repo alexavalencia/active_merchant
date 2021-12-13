@@ -24,6 +24,7 @@ jobs:
           ls -a
     - uses: ruby/setup-ruby@v1
       with:
+        working-directory: /home/active_merchant
         ruby-version: ${{ matrix.ruby }}
     - name: Build
       run: |
