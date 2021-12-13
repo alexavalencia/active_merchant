@@ -30,6 +30,10 @@ jobs:
     - name: Unit test
       run: 
           bundle exec rake test:local
+    - name: Fix code coverage paths
+      working-directory: ./coverage
+      run: |
+       sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' coverage.json
     - name: SonarCloud Scan
       uses: sonarsource/sonarcloud-github-action@master
       env:
