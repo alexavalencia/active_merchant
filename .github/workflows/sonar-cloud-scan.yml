@@ -26,30 +26,39 @@ jobs:
           gem install bundler -v '2.2.21'
           bundle install
     - name: Unit test
-      run: 
-          bundle exec rake test:local
-    - name: Fix code coverage paths
-      working-directory: ./coverage
       run: |
-       sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' coverage.json
+        bundle exec rake test:units  
     - name: Upload coverage report
       if: success()
       uses: actions/upload-artifact@v2
       with:
         name: result
         path: coverage/coverage.json
-
+    - name: see current carpet
+      run: |
+          cd coverage
+          ls -a 
+          pwd
+   
   sonarcloud:
-    needs: build-head
+    needs: build-head 
     runs-on: ubuntu-latest
-    steps:
+    steps:  
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
     - uses: actions/download-artifact@v2
       with:
           name: result
-    - run: ls
+    - name: Current path and sed command
+      run: |
+          ls -a
+          pwd
+          sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' coverage.json
+        
+    - name: send slack message
+      run: |
+          curl -X POST --data-urlencode "payload={\"channel\": \"#qa-process\", \"username\": \"webhookbot\", \"text\": \"Build complete...\", \"icon_emoji\": \":ghost:\"}" https://hooks.slack.com/services/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
     - name: SonarCloud Scan
       uses: sonarsource/sonarcloud-github-action@master
       env:
