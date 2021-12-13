@@ -15,14 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby: [2.5.7]
+        ruby: [2.5.7, 2.6.9, 2.7.5]
     steps:
     - uses: actions/checkout@v2
-    
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
- 
     - name: Build
       run: |
           gem install bundler -v '2.2.21'
@@ -34,6 +32,24 @@ jobs:
       working-directory: ./coverage
       run: |
        sed -i 's@'$GITHUB_WORKSPACE'@/github/workspace/@g' coverage.json
+    - name: Upload coverage report
+      if: success()
+      uses: actions/upload-artifact@v2
+      with:
+        name: result
+        path: coverage/coverage.json
+
+  sonarcloud:
+    needs: build-head
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - uses: actions/download-artifact@v2
+      with:
+          name: result
+    - run: ls
     - name: SonarCloud Scan
       uses: sonarsource/sonarcloud-github-action@master
       env:
