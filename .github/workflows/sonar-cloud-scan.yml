@@ -25,9 +25,12 @@ jobs:
       run: |
           gem install bundler -v '2.2.21'
           bundle install
-    - name: test
+    - name: Unit test
       run: 
           bundle exec rake test:local
+    - name: Stripe remote test
+      run: 
+          bundle exec rake test:remote TEST=test/remote/gateways/remote_stripe_test.rb
     - name: Upload coverage report
       if: success()
       uses: actions/upload-artifact@v2
