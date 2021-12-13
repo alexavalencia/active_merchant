@@ -7,9 +7,7 @@ SimpleCov.start do
   enable_coverage :branch
   add_filter %r{^/test/}
 end
-
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
-
 require 'test/unit'
 require 'mocha/test_unit'
 
@@ -21,7 +19,6 @@ require 'comm_stub'
 require 'active_support/core_ext/integer/time'
 require 'active_support/core_ext/numeric/time'
 require 'active_support/core_ext/time/acts_like'
-
 
 ActiveMerchant::Billing::Base.mode = :test
 
