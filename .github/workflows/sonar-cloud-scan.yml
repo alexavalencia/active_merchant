@@ -21,7 +21,6 @@ jobs:
     
     - uses: ruby/setup-ruby@v1
       with:
-        working-directory: /home/active_merchant/active_merchant
         ruby-version: ${{ matrix.ruby }}
     - name: move 
       run: |
