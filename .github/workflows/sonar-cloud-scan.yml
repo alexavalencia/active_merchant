@@ -15,9 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby: [2.5.7, 2.6.9, 2.7.5]
+        ruby: [2.5.7]
     steps:
     - uses: actions/checkout@v2
+    - name: move 
+      run: |
+          mv /home/runner/work/active_merchant /home/active_merchant
+          ls -a
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
