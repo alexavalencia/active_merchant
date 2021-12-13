@@ -18,20 +18,22 @@ jobs:
         ruby: [2.5.7]
     steps:
     - uses: actions/checkout@v2
+    
+    - uses: ruby/setup-ruby@v1
+      with:
+        working-directory: /home/active_merchant/active_merchant
+        ruby-version: ${{ matrix.ruby }}
     - name: move 
       run: |
           sudo mv /home/runner/work/active_merchant /home/active_merchant
           cd /home/active_merchant/active_merchant
           ls -a
           pwd
-    - uses: ruby/setup-ruby@v1
-      with:
-        working-directory: /home/active_merchant/active_merchant
-        ruby-version: ${{ matrix.ruby }}
     - name: Build
       run: |
           gem install bundler -v '2.2.21'
           bundle install
+      
     - name: Unit test
       run: 
           bundle exec rake test:local
