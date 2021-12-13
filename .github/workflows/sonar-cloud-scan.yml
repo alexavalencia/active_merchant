@@ -25,9 +25,6 @@ jobs:
       run: |
           gem install bundler -v '2.2.21'
           bundle install
-    - name: Static code analyze
-      run: 
-          bundle exec rake rubocop --format progress --format json --out rubocop.json
     - name: Unit test
       run: 
           bundle exec rake test:local
