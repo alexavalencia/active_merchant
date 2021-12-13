@@ -21,7 +21,7 @@ jobs:
     - name: move 
       run: |
           sudo mv /home/runner/work/active_merchant /home/active_merchant
-          cd /home/active_merchant
+          cd /home/active_merchant/active_merchant
           ls -a
     - uses: ruby/setup-ruby@v1
       with:
